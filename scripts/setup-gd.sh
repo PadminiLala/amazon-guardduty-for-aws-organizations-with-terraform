@@ -44,7 +44,8 @@ cd ..
 echo -e "${MAG}Creating GuardDuty Findings bucket and key${NC}"
 cd create-gd-bucket-and-key
 terraform init -upgrade
-terraform apply -auto-approve
+terraform plan
+# terraform apply --auto-approve
 echo -e "${BLUE}Done !${NC}"
 echo ""
 cd ..
@@ -60,7 +61,8 @@ python3 enable-gd/build-template.py $delegated_admin_acc_id $role_to_assume
 echo -e "${MAG}Turning on GuardDuty${NC}"
 cd enable-gd
 terraform init -upgrade
-terraform apply -auto-approve
+terraform plan
+# terraform apply --auto-approve
 echo -e "${BLUE}Done !${NC}"
 echo ""
 cd ..

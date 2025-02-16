@@ -30,6 +30,6 @@ module "gd_findings_bucket_and_key" {
   s3_logging_bucket_name                            = var.logging_acc_s3_bucket_name
   s3_access_log_bucket_name                         = var.s3_access_log_bucket_name
   default_region                                    = var.guardduty_findings_bucket_region
-  s3_bucket_object_transition_to_glacier_after_days = var.lifecycle_policy_days
+  
   tags                                              = var.tags
 }

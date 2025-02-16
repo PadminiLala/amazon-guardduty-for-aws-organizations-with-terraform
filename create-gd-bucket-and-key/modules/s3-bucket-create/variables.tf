@@ -47,20 +47,10 @@ variable "s3_logging_bucket_name" {
 }
 
 # S3 Lifecycle variables
-variable "s3_bucket_enable_object_transition_to_glacier" {
-  default = true
-}
 
-variable "s3_bucket_object_transition_to_glacier_after_days" {
-  default = 365
-}
-
-variable "s3_bucket_enable_object_deletion" {
-  default = false
-}
 
 variable "s3_bucket_object_deletion_after_days" {
-  default = 1095
+  default = 365
 }
 
 variable "s3_access_log_bucket_name" {

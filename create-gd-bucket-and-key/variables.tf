@@ -24,7 +24,7 @@ variable "delegated_admin_acc_id" {
 
 variable "assume_role_name" {
   description = "The role to assume in the delegated admin account."
-  default     = "GuardDutyTerraformOrgRole"
+  default     = "AWSControlTowerExecution"
 }
 
 variable "guardduty_findings_bucket_region" {
@@ -44,12 +44,6 @@ variable "security_acc_kms_key_alias" {
 variable "logging_acc_s3_bucket_name" {
   description = "Name of S3 bucket to store logs in the logging account"
 }
-
-variable "lifecycle_policy_days" {
-  description = "Specifies the number of days after which items are moved to Glacier."
-  default     = 365
-}
-
 variable "s3_access_log_bucket_name" {
   type        = string
   description = "Bucket to store access logs for GD bucket"

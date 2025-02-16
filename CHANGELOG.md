@@ -36,7 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-- Updated required version from `= 0.14.6` to `>= 0.14.6` to add support for higher versions of Terraform; tested with version `1.2.8`
+- required version from `= 1.7.5`
 
 ## [1.2.0] - 2022-07-30
 

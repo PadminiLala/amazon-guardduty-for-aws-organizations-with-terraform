@@ -16,6 +16,35 @@
 #  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # GD Findings Bucket policy
+data "aws_iam_policy_document" "access_bucket_pol" {
+  statement {
+    sid = "Allow PutObject"
+    actions = [
+      "s3:PutObject"
+    ]
+
+    resources = [
+      "${aws_s3_bucket.gd_access_bucket.arn}/*",
+      "${aws_s3_bucket.gd_access_bucket.arn}"
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [var.logging_acc_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = [aws_s3_bucket.gd_bucket.arn]
+    }
+
+    principals {
+      type        = "Service"
+      identifiers = ["logging.s3.amazonaws.com"]
+    }
+  }
+  
+}
 data "aws_iam_policy_document" "bucket_pol" {
   statement {
     sid = "Allow PutObject"
@@ -277,45 +306,46 @@ resource "aws_s3_bucket" "gd_bucket" {
   provider   = aws.src
   depends_on = [aws_kms_key.gd_key]
   bucket     = var.s3_logging_bucket_name
-
-  acl           = "private"
   force_destroy = true
+  tags = var.tags
+}
+resource "aws_s3_bucket_lifecycle_configuration" "gd_bucket_lifecycle_configuration" {
+  provider   = aws.src
+  bucket   = aws_s3_bucket.gd_bucket.id
+  rule {
+    status = "Enabled"
+    id     = "delete-objects"
 
-  logging {
-    target_bucket = var.s3_access_log_bucket_name
-    target_prefix = "log/"
-  }
-  versioning {
-    enabled = true
-  }
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        kms_master_key_id = aws_kms_key.gd_key.arn
-        sse_algorithm     = "aws:kms"
-      }
-    }
-  }
-
-  lifecycle_rule {
-    id      = "transition-objects-to-glacier"
-    enabled = var.s3_bucket_enable_object_transition_to_glacier
-    transition {
-      days          = var.s3_bucket_object_transition_to_glacier_after_days
-      storage_class = "GLACIER"
-    }
-  }
-  lifecycle_rule {
-    id      = "delete-objects"
-    enabled = var.s3_bucket_enable_object_deletion
     expiration {
       days = var.s3_bucket_object_deletion_after_days
     }
   }
 
-  tags = var.tags
 }
+resource "aws_s3_bucket_server_side_encryption_configuration" "gd_bucket_encryption" {
+  provider   = aws.src
+  bucket   =  aws_s3_bucket.gd_bucket.id
 
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = aws_kms_key.gd_key.arn
+      sse_algorithm     = "aws:kms"
+    }
+  }
+}
+resource "aws_s3_bucket_versioning" "gd_bucket_versioning" {
+  provider   = aws.src
+  bucket   = aws_s3_bucket.gd_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+resource "aws_s3_bucket_logging" "gd_bucket_logging" {
+  provider   = aws.src
+  bucket        = aws_s3_bucket.gd_bucket.id
+  target_bucket = var.s3_access_log_bucket_name
+  target_prefix = "log/"
+}
 resource "aws_s3_bucket_public_access_block" "gd_bucket_block_public" {
   depends_on              = [aws_s3_bucket.gd_bucket, aws_s3_bucket_policy.gd_bucket_policy]
   bucket                  = aws_s3_bucket.gd_bucket.id
@@ -334,3 +364,59 @@ resource "aws_s3_bucket_policy" "gd_bucket_policy" {
 }
 
 
+
+##access bucket creation
+
+
+resource "aws_s3_bucket" "gd_access_bucket" {
+  provider   = aws.src
+  bucket     = var.s3_access_log_bucket_name
+  force_destroy = true
+
+  tags = var.tags
+}
+resource "aws_s3_bucket_public_access_block" "gd_access_bucket_block_public" {
+  depends_on              = [aws_s3_bucket.gd_access_bucket, aws_s3_bucket_policy.gd_access_bucket_policy]
+  bucket                  = aws_s3_bucket.gd_access_bucket.id
+  provider                = aws.src
+  block_public_acls       = true
+  block_public_policy     = true
+  restrict_public_buckets = true
+  ignore_public_acls      = true
+}
+resource "aws_s3_bucket_policy" "gd_access_bucket_policy" {
+  depends_on = [aws_s3_bucket.gd_access_bucket]
+  provider   = aws.src
+  bucket     = aws_s3_bucket.gd_access_bucket.id
+  policy     = data.aws_iam_policy_document.access_bucket_pol.json
+}
+resource "aws_s3_bucket_lifecycle_configuration" "gd_access_bucket_lifecycle_configuration" {
+  provider   = aws.src
+  bucket   = aws_s3_bucket.gd_access_bucket.id
+  rule {
+    status = "Enabled"
+    id     = "delete-objects"
+
+    expiration {
+      days = var.s3_bucket_object_deletion_after_days
+    }
+  }
+
+}
+resource "aws_s3_bucket_server_side_encryption_configuration" "gd_access_bucket_encryption" {
+  provider   = aws.src
+  bucket   =  aws_s3_bucket.gd_access_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "AES256"
+    }
+  }
+}
+resource "aws_s3_bucket_versioning" "gd_access_bucket_versioning" {
+  provider   = aws.src
+  bucket   = aws_s3_bucket.gd_access_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}

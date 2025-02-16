@@ -20,6 +20,6 @@ terraform {
     bucket = <tfm_state_backend_s3_bucket>
     key    = "gd-findings-store.tfstate"
     region = <default_region>
-    dynamodb_table = <tfm_state_backend_dynamodb_table>
+    
   }
 }

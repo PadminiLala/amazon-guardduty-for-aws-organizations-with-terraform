@@ -37,7 +37,8 @@ read -n 1
 echo -e "${MAG}Creating the Delegated admin account role${NC}"
 cd create-delegatedadmin-acct-role
 terraform init -upgrade
-terraform apply -auto-approve
+terraform plan
+# terraform apply --auto-approve
 echo -e "${BLUE}Done !${NC}"
 echo ""
 cd ..
@@ -52,7 +53,8 @@ rm create-logging-acct-role/create-role.tf=
 echo -e "${MAG}Creating the Logging account role${NC}"
 cd create-logging-acct-role
 terraform init -upgrade
-terraform apply -auto-approve
+terraform plan
+# terraform apply --auto-approve
 echo -e "${BLUE}Done !${NC}"
 echo ""
 cd ..
